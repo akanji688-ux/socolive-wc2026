@@ -2,13 +2,13 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8"/>
-<!-- Google Analytics G-28RWPRGNF1 -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-28RWPRGNF1"></script>
+<!-- Google Analytics G-EF8L28BDQ4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EF8L28BDQ4"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-28RWPRGNF1');
+  gtag('config', 'G-EF8L28BDQ4');
 </script>
 <link rel="icon" type="image/x-icon" href="image/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="image/favicon-32.png">
@@ -1261,17 +1261,76 @@ setInterval(function(){fetchBD24H();},30000);
   setInterval(function(){i1=(i1+1)%2;setBtn(b1,c1[i1][0],c1[i1][1],c1[i1][2]);},700);
   setTimeout(function(){setInterval(function(){i2=(i2+1)%2;setBtn(b2,c2[i2][0],c2[i2][1],c2[i2][2]);},700);},350);
 })();
-// ===== GA4 - Chi tiết từng button =====
+// ===== GA4 - Tracking toàn bộ sự kiện =====
 document.addEventListener('click', function(e){
-  var el = e.target.closest('a[data-ga]');
-  if(!el) el = e.target.closest('a[href*="socolive"]');
-  if(el && typeof gtag === 'function'){
-    var gaName = el.getAttribute('data-ga') || 'btn_socolive_khac';
-    gtag('event', gaName, {
-      'event_category': 'Socolive_Click',
-      'event_label': gaName,
-      'value': 1
-    });
+  if(typeof gtag !== 'function') return;
+  var t = e.target;
+
+  // 1. Link có data-ga (button Xem TT, Đăng Ký, Header, Banner, Nổi Bật)
+  var elA = t.closest('a[data-ga]');
+  if(elA){
+    var name = elA.getAttribute('data-ga');
+    gtag('event', name, {'event_category':'click','event_label': name});
+    return;
+  }
+
+  // 2. Tab điều hướng (Lịch, Bảng Đấu...)
+  var elTab = t.closest('.tbtn');
+  if(elTab){
+    var tabName = elTab.textContent.trim().replace(/\s+/g,' ').substring(0,30);
+    gtag('event', 'tab_click', {'event_category':'navigation','event_label': tabName});
+    return;
+  }
+
+  // 3. Nút chọn ngày (Date Nav)
+  var elDn = t.closest('.dn-btn');
+  if(elDn){
+    var dateVal = elDn.querySelector('.dn-date') ? elDn.querySelector('.dn-date').textContent.trim() : 'unknown';
+    gtag('event', 'date_select', {'event_category':'navigation','event_label': dateVal});
+    return;
+  }
+
+  // 4. Live card (click vào trận đang diễn ra)
+  var elLc = t.closest('.live-card');
+  if(elLc){
+    var leagueTxt = elLc.querySelector('.lc-league') ? elLc.querySelector('.lc-league').textContent.trim() : '';
+    var teams = elLc.querySelectorAll('.lc-name');
+    var matchName = teams.length>=2 ? teams[0].textContent.trim()+' vs '+teams[1].textContent.trim() : 'live_match';
+    gtag('event', 'livecard_click', {'event_category':'match','event_label': matchName + ' | ' + leagueTxt});
+    return;
+  }
+
+  // 5. Match row (click vào hàng trận đấu trong lịch)
+  var elMr = t.closest('.match-row');
+  if(elMr){
+    var teams2 = elMr.querySelectorAll('.mr-name,.team-name');
+    var matchLabel = teams2.length>=2 ? teams2[0].textContent.trim()+' vs '+teams2[1].textContent.trim() : 'match_row';
+    gtag('event', 'matchrow_click', {'event_category':'match','event_label': matchLabel});
+    return;
+  }
+
+  // 6. Group card bảng đấu
+  var elGc = t.closest('.grp-card');
+  if(elGc){
+    var gcId = elGc.id || 'group';
+    gtag('event', 'group_click', {'event_category':'bangdau','event_label': gcId});
+    return;
+  }
+
+  // 7. Carousel arrows (mũi tên cuộn)
+  var elArr = t.closest('.arr-l, .arr-r, .feat-arr');
+  if(elArr){
+    var dir = elArr.classList.contains('arr-l') ? 'prev' : 'next';
+    gtag('event', 'carousel_arrow', {'event_category':'carousel','event_label': dir});
+    return;
+  }
+
+  // 8. Mọi link ngoài còn lại (target _blank)
+  var elLink = t.closest('a[href][target="_blank"]');
+  if(elLink){
+    var href = elLink.getAttribute('href') || '';
+    var label = elLink.textContent.trim().substring(0,40) || href;
+    gtag('event', 'external_link', {'event_category':'outbound','event_label': label + ' | ' + href});
   }
 });
 </script>
